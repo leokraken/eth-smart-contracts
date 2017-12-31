@@ -80,7 +80,8 @@ class App extends Component {
 
         // Stores a given value, 5 by default.
         console.log(this.state.amount)
-        return simpleStorageInstance.bid({ from: accounts[0], value: this.state.amount, gas: 2000000 })
+        let amount =  this.state.web3.toWei(this.state.amount, 'ether')
+        return simpleStorageInstance.bid({ from: accounts[0], value: amount, gas: 2000000 })
       }).then((result) => {
         // Update state with the result.
         console.log("Bid successfully")
