@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
-import ExampleContract from '../build/contracts/example.json'
+import ExampleContract from '../build/contracts/SimpleAuction.json'
 
 import getWeb3 from './utils/getWeb3'
 
@@ -19,6 +19,9 @@ class App extends Component {
     }
 
     this.getValue = this.getValue.bind(this);
+    this.getHigh = this.getHigh.bind(this);
+    this.handleAmountPrice = this.handleAmountPrice.bind(this);
+
   }
 
   componentWillMount() {
@@ -38,10 +41,9 @@ class App extends Component {
       console.log('Error finding web3.')
     })
   }
-
-  getValue(){
+  getHigh(){
     const contract = require('truffle-contract')
-    const simpleStorage = contract(SimpleStorageContract)
+    const simpleStorage = contract(ExampleContract)
     simpleStorage.setProvider(this.state.web3.currentProvider)
 
     // Declaring this for later so we can chain functions on SimpleStorage.
@@ -53,10 +55,42 @@ class App extends Component {
         simpleStorageInstance = instance
 
         // Stores a given value, 5 by default.
-        return simpleStorageInstance.get.call(accounts[0])
+        return simpleStorageInstance.highestBidder.call(accounts[0])
+      }).then((result) => {
+        console.log(result)
+
+        // Update state with the result.
+        return this.setState({ highValue: result })
+      })
+    })
+  }
+
+  getValue(){
+    const contract = require('truffle-contract')
+    const simpleStorage = contract(ExampleContract)
+    simpleStorage.setProvider(this.state.web3.currentProvider)
+
+    // Declaring this for later so we can chain functions on SimpleStorage.
+    var simpleStorageInstance
+
+    // Get accounts.
+    this.state.web3.eth.getAccounts((error, accounts) => {
+      simpleStorage.deployed().then((instance) => {
+        simpleStorageInstance = instance
+
+        // Stores a given value, 5 by default.
+        console.log(this.state.amount)
+        return simpleStorageInstance.bid({ from: accounts[0], value: this.state.amount, gas: 2000000 })
       }).then((result) => {
         // Update state with the result.
-        return this.setState({ contractValue: result.c[0] })
+        console.log("Bid successfully")
+        return simpleStorageInstance.highestBidder.call(accounts[0])
+        //return this.setState({ contractValue: result.c[0] })
+      }).then((result) => {
+                console.log(result)
+
+        // Update state with the result.
+        return this.setState({ highValue: result.c[0] })
       })
     })
   }
@@ -93,6 +127,11 @@ class App extends Component {
     })
   }
 
+
+  handleAmountPrice(event) {
+    this.setState({amount: event.target.value});
+  }
+
   render() {
     return (
       <div className="App">
@@ -104,16 +143,19 @@ class App extends Component {
           <div className="pure-g">
             <div className="pure-u-1-1">
               <h1>Good to Go!</h1>
-              <p>Your Truffle Box is installed and ready.</p>
               <h2>Smart Contract Example</h2>
-              <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
-              <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
-              <p>The stored value is: {this.state.storageValue}</p>
 
               <button onClick={this.getValue}>
-                Get from contract value
+                Bid
               </button>
-              <p>Stored: {this.state.contractValue}</p>
+              <button onClick={this.getHigh}>
+                High bid address
+              </button>
+              <label>
+                USD:
+                <input type="text" value={this.state.amount} onChange={this.handleAmountPrice} />
+              </label>
+              <p>High bid example: {this.state.highValue}</p>
             </div>
           </div>
         </main>

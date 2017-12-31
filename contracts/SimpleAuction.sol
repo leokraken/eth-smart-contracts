@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.11;
 
 contract SimpleAuction {
     // Parameters of the auction. Times are either
